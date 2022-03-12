@@ -48,7 +48,8 @@ struct EmojiArtView: View {
     
     private func emojiDrop(_ provider: [NSItemProvider], at location: CGPoint, in geometry: GeometryProxy) -> Bool {
         var found = provider.loadObjects(ofType: URL.self) { url in
-            viewModel.setBackground(.url(url))
+            // convert url into imageURL, because url may be a redirect link or encoded linkage
+            viewModel.setBackground(.url(url.imageURL))
         }
         
         if !found {
