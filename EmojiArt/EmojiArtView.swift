@@ -25,10 +25,14 @@ struct EmojiArtView: View {
                     OptionalImage(uiImage: viewModel.backgroundImage)
                         .position(convertFromEmojiCoordinate((0, 0), in: geometry))
                 }
-                ForEach(viewModel.emojis) { emoji in
-                    Text(emoji.text)
-                        .font(.system(size: emojiSize(for: emoji)))
-                        .position(emojiPosition(for: emoji, in: geometry))
+                if viewModel.fetchStatus == .fetching {
+                    ProgressView().scaleEffect(3)
+                } else {
+                    ForEach(viewModel.emojis) { emoji in
+                        Text(emoji.text)
+                            .font(.system(size: emojiSize(for: emoji)))
+                            .position(emojiPosition(for: emoji, in: geometry))
+                    }
                 }
             }
             .onDrop(of: [.plainText, .url, .image], isTargeted: nil) { provider, location in

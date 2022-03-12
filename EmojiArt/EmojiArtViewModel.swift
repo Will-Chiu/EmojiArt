@@ -15,12 +15,18 @@ class EmojiArtViewModel: ObservableObject {
             }
         }
     }
+    @Published var backgroundImage: UIImage?
+    @Published var fetchStatus = FetchStatus.idle
     
     // emojis and background are just a shorthad for user,
     // so that user can viewModel.emojis instead of viewModel.model.emojis
     var emojis: [EmojiArtModel.Emoji] { model.emojis }
     var background: EmojiArtModel.Background { model.background }
-    @Published var backgroundImage: UIImage?
+    
+    enum FetchStatus {
+        case idle
+        case fetching
+    }
     
     init() {
         model = EmojiArtModel()
@@ -31,9 +37,11 @@ class EmojiArtViewModel: ObservableObject {
     private func fetchBackgroundImageDataIfNecessary() {
         switch model.background {
         case .url(let url):
+            fetchStatus = .fetching
             DispatchQueue.global(qos: .userInitiated).async {
                 if let data = try? Data(contentsOf: url) {
                     DispatchQueue.main.async { [weak self] in
+                        self?.fetchStatus = .idle
                         // To compare the existing background status, because user may drag and drop a new image after a long loading time.
                         if self?.model.background == EmojiArtModel.Background.url(url) {
                             self?.backgroundImage = UIImage(data: data)
