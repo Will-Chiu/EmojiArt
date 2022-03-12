@@ -21,14 +21,17 @@ struct EmojiArtView: View {
     var drawingBody: some View {
         GeometryReader { geometry in
             ZStack {
-                Color.gray
+                Color.white.overlay {
+                    OptionalImage(uiImage: viewModel.backgroundImage)
+                        .position(convertFromEmojiCoordinate((0, 0), in: geometry))
+                }
                 ForEach(viewModel.emojis) { emoji in
                     Text(emoji.text)
                         .font(.system(size: emojiSize(for: emoji)))
                         .position(emojiPosition(for: emoji, in: geometry))
                 }
             }
-            .onDrop(of: [.plainText], isTargeted: nil) { provider, location in
+            .onDrop(of: [.plainText, .url, .image], isTargeted: nil) { provider, location in
                 return emojiDrop(provider, at: location, in: geometry)
             }
         }
@@ -40,11 +43,27 @@ struct EmojiArtView: View {
     }
     
     private func emojiDrop(_ provider: [NSItemProvider], at location: CGPoint, in geometry: GeometryProxy) -> Bool {
-        return provider.loadObjects(ofType: String.self) { string in
-            if let emoji = string.first, emoji.isEmoji {
-                viewModel.addEmoji(String(emoji), at: convertToEmojiCoordinate(at: location, in: geometry), size: ViewConstant.EmojiFontSize)
+        var found = provider.loadObjects(ofType: URL.self) { url in
+            viewModel.setBackground(.url(url))
+        }
+        
+        if !found {
+            found = provider.loadObjects(ofType: UIImage.self) { image in
+                if let data = image.jpegData(compressionQuality: 1.0) {
+                    viewModel.setBackground(.imageData(data))
+                }
             }
         }
+        
+        if !found {
+            found = provider.loadObjects(ofType: String.self) { string in
+                if let emoji = string.first, emoji.isEmoji {
+                    viewModel.addEmoji(String(emoji), at: convertToEmojiCoordinate(at: location, in: geometry), size: ViewConstant.EmojiFontSize)
+                }
+            }
+        }
+        
+        return found
     }
     
     private func convertToEmojiCoordinate(at location: CGPoint, in geometry: GeometryProxy) -> (Int, Int) {
