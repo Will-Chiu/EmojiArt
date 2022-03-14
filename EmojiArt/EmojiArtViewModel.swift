@@ -78,7 +78,7 @@ class EmojiArtViewModel: ObservableObject {
     func scaleEmoji(_ emoji: EmojiArtModel.Emoji, by scale: CGFloat) {
         if let index = model.emojis.index(matching: emoji) {
             let newSize = CGFloat(model.emojis[index].size) * scale
-            model.emojis[index].size = Int(newSize.rounded(.awayFromZero))
+            model.emojis[index].size = Int(newSize.rounded(.toNearestOrAwayFromZero))
         }
     }
 }

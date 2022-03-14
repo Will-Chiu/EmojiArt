@@ -9,6 +9,7 @@ import SwiftUI
 
 struct EmojiArtView: View {
     @ObservedObject var viewModel: EmojiArtViewModel
+    
     @State private var finalZoomScale: CGFloat = 1
     // @GestureState to avoid frequently changing on finalZoomScale during pinch gesture, which will result exponential growth
     @GestureState private var gesturingZoomScale: CGFloat = 1
@@ -20,7 +21,7 @@ struct EmojiArtView: View {
     // @GestureState to avoid frequently changing on finalPanOffset during pinch gesture, which will result exponential growth
     @GestureState private var gesturingPanOffset: CGSize = CGSize.zero
     private var panOffset: CGSize {
-        (finalPanOffset + gesturingPanOffset)
+        (finalPanOffset + gesturingPanOffset) * zoomScale
     }
     
     let testEmojis = "🐶🐱🐭🐹🐰🦊🐻🐼🐻‍❄️🐨🐯🦁🐮🐷🐸🐵"
@@ -47,8 +48,9 @@ struct EmojiArtView: View {
                     ForEach(viewModel.emojis) { emoji in
                         Text(emoji.text)
                             .font(.system(size: emojiSize(for: emoji)))
-                            .position(emojiPosition(for: emoji, in: geometry))
+                            // if below modifiers change position, emojis will have extra offset when drag or zoom
                             .scaleEffect(zoomScale)
+                            .position(emojiPosition(for: emoji, in: geometry))
                     }
                 }
             }
@@ -103,7 +105,7 @@ struct EmojiArtView: View {
     }
     
     private func emojiSize(for emoji: EmojiArtModel.Emoji) -> CGFloat {
-        CGFloat(emoji.size) * zoomScale
+        CGFloat(emoji.size)
     }
     
     private func emojiPosition(for emoji: EmojiArtModel.Emoji, in geometry: GeometryProxy) -> CGPoint {
@@ -148,8 +150,8 @@ struct EmojiArtView: View {
     
     private func panGesture() -> some Gesture {
         DragGesture()
-            .updating($gesturingPanOffset) { finalDragOffset, gesturingPanOffsetInOut, transaction in
-                gesturingPanOffsetInOut = (finalDragOffset.translation / zoomScale)
+            .updating($gesturingPanOffset) { lastestDragOffset, gesturingPanOffsetInOut, transaction in
+                gesturingPanOffsetInOut = (lastestDragOffset.translation / zoomScale)
             }
             .onEnded { finalDrag in
                 finalPanOffset = finalPanOffset + (finalDrag.translation / zoomScale)
