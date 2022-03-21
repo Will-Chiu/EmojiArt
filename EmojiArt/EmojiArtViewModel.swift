@@ -10,6 +10,7 @@ import SwiftUI
 class EmojiArtViewModel: ObservableObject {
     @Published private(set) var model: EmojiArtModel {
         didSet {
+            scheduleAutosave()
             if model.background != oldValue.background {
                 fetchBackgroundImageDataIfNecessary()
             }
@@ -23,17 +24,62 @@ class EmojiArtViewModel: ObservableObject {
     var emojis: [EmojiArtModel.Emoji] { model.emojis }
     var background: EmojiArtModel.Background { model.background }
     
+    private var autosaveTimer: Timer?
+    
     enum FetchStatus {
         case idle
         case fetching
     }
     
+    private struct Autosave {
+        static let filename = "Autosave.emojiart"
+        static var url: URL? {
+            let documentDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+            return documentDirectory?.appendingPathComponent(filename)
+        }
+        static let coalescingInterval: TimeInterval = 3.0
+    }
+    
     init() {
-        model = EmojiArtModel()
-        model.addEmoji("🔥", at: (-100, -100), size: 80)
-        model.addEmoji("🌪", at: (100, 50), size: 40)
-        model.background = .url(URL(string: "https://img.freepik.com/free-vector/nature-scene-background-with-rainbow-sky_1308-73033.jpg")!)
-        fetchBackgroundImageDataIfNecessary()
+        if let url = Autosave.url, let autosavedEmojiArt = try? EmojiArtModel(url: url) {
+            model = autosavedEmojiArt
+            fetchBackgroundImageDataIfNecessary()
+        } else {
+            model = EmojiArtModel()
+//            model.addEmoji("🔥", at: (-100, -100), size: 80)
+//            model.addEmoji("🌪", at: (100, 50), size: 40)
+//            model.background = .url(URL(string: "https://img.freepik.com/free-vector/nature-scene-background-with-rainbow-sky_1308-73033.jpg")!)
+//            fetchBackgroundImageDataIfNecessary()
+        }
+     }
+    
+    private func scheduleAutosave() {
+        autosaveTimer?.invalidate()
+        autosaveTimer = Timer.scheduledTimer(withTimeInterval: Autosave.coalescingInterval, repeats: false) { _ in
+            // we don't use [weak self] because we want to have a strong reference self, so that the auto-save will be kept, and will not be released by ARC.
+            self.autosave()
+        }
+    }
+    
+    private func autosave() {
+        if let url = Autosave.url {
+            save(to: url)
+        }
+    }
+    
+    private func save(to url: URL) {
+        let thisFunc = "\(String(describing: self)).\(#function)"
+        do {
+            let data: Data = try model.json()
+            print("\(thisFunc) json: \(String(data: data, encoding: .utf8) ?? "nil")")
+            try data.write(to: url)
+            print("save success!")
+        } catch let error where error is EncodingError {
+            print("\(thisFunc) EncodingError: \(error.localizedDescription)")
+        } catch {
+            print("\(thisFunc) error: \(error)")
+        }
+
     }
     
     private func fetchBackgroundImageDataIfNecessary() {
