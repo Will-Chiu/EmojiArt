@@ -9,20 +9,19 @@ import SwiftUI
 
 struct EmojiArtView: View {
     @ObservedObject var viewModel: EmojiArtViewModel
-    
     @State private var finalZoomScale: CGFloat = 1
     // @GestureState to avoid frequently changing on finalZoomScale during pinch gesture, which will result exponential growth
     @GestureState private var gesturingZoomScale: CGFloat = 1
     private var zoomScale: CGFloat {
         finalZoomScale * gesturingZoomScale
     }
-    
     @State private var finalPanOffset: CGSize = CGSize.zero
     // @GestureState to avoid frequently changing on finalPanOffset during pinch gesture, which will result exponential growth
     @GestureState private var gesturingPanOffset: CGSize = CGSize.zero
     private var panOffset: CGSize {
         (finalPanOffset + gesturingPanOffset) * zoomScale
     }
+    @State private var alertToShow: IdentifiableAlert?
     
     var body: some View {
         VStack(spacing: 0) {
@@ -57,6 +56,17 @@ struct EmojiArtView: View {
                 return emojiDrop(provider, at: location, in: geometry)
             }
             .gesture(zoomGesture().simultaneously(with: panGesture()))
+            .alert(item: $alertToShow) { alert in
+                alert.alert()
+            }
+            .onChange(of: viewModel.fetchStatus) { status in
+                switch status {
+                case .failed(let url):
+                    showBackgroundImageFetchFailedAlert(url)
+                default:
+                    break
+                }
+            }
         }
     }
     
@@ -149,6 +159,16 @@ struct EmojiArtView: View {
             .onEnded { finalDrag in
                 finalPanOffset = finalPanOffset + (finalDrag.translation / zoomScale)
             }
+    }
+    
+    private func showBackgroundImageFetchFailedAlert(_ url: URL) {
+        alertToShow = IdentifiableAlert(id: "Fetch Fail" + url.absoluteString) {
+            Alert(
+                title: Text("Background Image Fetch Failed"),
+                message: Text(url.absoluteString),
+                dismissButton: .default(Text("OK"))
+            )
+        }
     }
     
     struct ViewConstant {

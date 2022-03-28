@@ -26,9 +26,10 @@ class EmojiArtViewModel: ObservableObject {
     
     private var autosaveTimer: Timer?
     
-    enum FetchStatus {
+    enum FetchStatus: Equatable {
         case idle
         case fetching
+        case failed(URL)
     }
     
     private struct Autosave {
@@ -89,6 +90,9 @@ class EmojiArtViewModel: ObservableObject {
                         // To compare the existing background status, because user may drag and drop a new image after a long loading time.
                         if self?.model.background == EmojiArtModel.Background.url(url) {
                             self?.backgroundImage = UIImage(data: data)
+                        }
+                        if self?.backgroundImage == nil {
+                            self?.fetchStatus = .failed(url)
                         }
                     }
                 }
