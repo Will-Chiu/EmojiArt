@@ -46,10 +46,6 @@ class EmojiArtViewModel: ObservableObject {
             fetchBackgroundImageDataIfNecessary()
         } else {
             model = EmojiArtModel()
-//            model.addEmoji("🔥", at: (-100, -100), size: 80)
-//            model.addEmoji("🌪", at: (100, 50), size: 40)
-//            model.background = .url(URL(string: "https://img.freepik.com/free-vector/nature-scene-background-with-rainbow-sky_1308-73033.jpg")!)
-//            fetchBackgroundImageDataIfNecessary()
         }
      }
     

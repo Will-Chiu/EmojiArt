@@ -252,3 +252,28 @@ extension Array where Element == NSItemProvider {
         loadObjects(ofType: theType, firstOnly: true, using: load)
     }
 }
+
+
+extension Array where Element: Equatable {
+    func removeDuplicate() -> [Element] {
+        var uniqueArray = [Element]()
+        for element in self {
+            if !uniqueArray.contains(where: {$0 == element}) {
+                uniqueArray.append(element)
+            }
+        }
+        return uniqueArray
+    }
+}
+
+extension String {
+    func removeDuplicate() -> String {
+        var uniqueString = ""
+        for char in self {
+            if !uniqueString.contains(char) {
+                uniqueString = uniqueString + String(char)
+            }
+        }
+        return uniqueString
+    }
+}

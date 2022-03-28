@@ -24,12 +24,10 @@ struct EmojiArtView: View {
         (finalPanOffset + gesturingPanOffset) * zoomScale
     }
     
-    let testEmojis = "🐶🐱🐭🐹🐰🦊🐻🐼🐻‍❄️🐨🐯🦁🐮🐷🐸🐵"
-    
     var body: some View {
         VStack(spacing: 0) {
             drawingBody
-            palette
+            PaletteChooserView(fontSize: ViewConstant.EmojiFontSize)
         }
     }
     
@@ -60,11 +58,6 @@ struct EmojiArtView: View {
             }
             .gesture(zoomGesture().simultaneously(with: panGesture()))
         }
-    }
-    
-    var palette: some View {
-        ScrollEmojisView(emojis: testEmojis)
-            .font(.system(size: ViewConstant.EmojiFontSize))
     }
     
     private func emojiDrop(_ provider: [NSItemProvider], at location: CGPoint, in geometry: GeometryProxy) -> Bool {
@@ -160,20 +153,6 @@ struct EmojiArtView: View {
     
     struct ViewConstant {
         static let EmojiFontSize: CGFloat = 40
-    }
-}
-
-struct ScrollEmojisView: View {
-    let emojis: String
-    var body: some View {
-        ScrollView(.horizontal) {
-            HStack {
-                ForEach(emojis.map({ String($0) }), id: \.self ){ emoji in
-                    Text(emoji)
-                        .onDrag { NSItemProvider(object: emoji as NSString) }
-                }
-            }
-        }
     }
 }
 
