@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Combine
 
 class EmojiArtViewModel: ObservableObject {
     @Published private(set) var model: EmojiArtModel {
@@ -25,6 +26,8 @@ class EmojiArtViewModel: ObservableObject {
     var background: EmojiArtModel.Background { model.background }
     
     private var autosaveTimer: Timer?
+    // the cancellable should be hold by view model, otherwise the subscriber inside a function call will be dismissed
+    private var backgroundImageFetchCancellable: AnyCancellable?
     
     enum FetchStatus: Equatable {
         case idle
@@ -83,20 +86,55 @@ class EmojiArtViewModel: ObservableObject {
         switch model.background {
         case .url(let url):
             fetchStatus = .fetching
-            DispatchQueue.global(qos: .userInitiated).async {
-                if let data = try? Data(contentsOf: url) {
-                    DispatchQueue.main.async { [weak self] in
-                        self?.fetchStatus = .idle
-                        // To compare the existing background status, because user may drag and drop a new image after a long loading time.
-                        if self?.model.background == EmojiArtModel.Background.url(url) {
-                            self?.backgroundImage = UIImage(data: data)
+            // To cancel any previous task (drag and drop background url), which wait for a long time for loading
+            backgroundImageFetchCancellable?.cancel()
+            let session = URLSession.shared
+            let publisher = session.dataTaskPublisher(for: url)
+                .map { (data, respond) in UIImage(data: data) }
+                .receive(on: DispatchQueue.main)
+//                // replaceError make publisher tranform to receiveValue only, without receiveCompletion
+//                .replaceError(with: nil)
+//
+//                // assign can be only used when the piblisher without failure case and directly assign the value to somewhere
+//            backgroundImageFetchCancellable = publisher
+//                .assign(to: \EmojiArtViewModel.backgroundImage, on: self)
+            
+            backgroundImageFetchCancellable = publisher
+                .sink(
+                    receiveCompletion: { [weak self] result in
+                        switch result {
+                        case .finished:
+                            print("Background image fetch successfully")
+                            self?.fetchStatus = .idle
+                        case .failure(let error):
+                            print("Background image fetch fail: \n\(error.localizedDescription)")
+                            self?.fetchStatus = .failed(url)
                         }
-                        if self?.backgroundImage == nil {
+                    },
+                    receiveValue: {  [weak self] image in
+                        if let image = image {
+                            self?.backgroundImage = image
+                        } else {
                             self?.fetchStatus = .failed(url)
                         }
                     }
-                }
-            }
+                )
+            
+            
+//            DispatchQueue.global(qos: .userInitiated).async {
+//                if let data = try? Data(contentsOf: url) {
+//                    DispatchQueue.main.async { [weak self] in
+//                        self?.fetchStatus = .idle
+//                        // To compare the existing background status, because user may drag and drop a new image after a long loading time.
+//                        if self?.model.background == EmojiArtModel.Background.url(url) {
+//                            self?.backgroundImage = UIImage(data: data)
+//                        }
+//                        if self?.backgroundImage == nil {
+//                            self?.fetchStatus = .failed(url)
+//                        }
+//                    }
+//                }
+//            }
         case .imageData(let data):
             backgroundImage = UIImage(data: data)
         case.blank:
