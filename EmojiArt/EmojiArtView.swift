@@ -24,6 +24,7 @@ struct EmojiArtView: View {
     @State private var alertToShow: IdentifiableAlert?
     @State private var autoZoomEnable = false
     @ScaledMetric var emojiFontSize: CGFloat = 40
+    @Environment(\.undoManager) var undoManager
     
     var body: some View {
         VStack(spacing: 0) {
@@ -74,6 +75,12 @@ struct EmojiArtView: View {
                     zoomToFit(image, in: geometry.size)
                 }
             }
+            .toolbar {
+                UndoButton(
+                    undo: undoManager?.optionalUndoMenuItemTitle,
+                    redo: undoManager?.optionalRedoMenuItemTitle
+                )
+            }
         }
     }
     
@@ -83,13 +90,13 @@ struct EmojiArtView: View {
             print("imageURL: \(url.imageURL)")
             // Only when a new background is dropped, auto zoom will be applicable
             autoZoomEnable = true
-            viewModel.setBackground(.url(url.imageURL))
+            viewModel.setBackground(.url(url.imageURL), undoManager: undoManager)
         }
         
         if !found {
             found = provider.loadObjects(ofType: UIImage.self) { image in
                 if let data = image.jpegData(compressionQuality: 1.0) {
-                    viewModel.setBackground(.imageData(data))
+                    viewModel.setBackground(.imageData(data), undoManager: undoManager)
                 }
             }
         }
@@ -99,7 +106,7 @@ struct EmojiArtView: View {
                 if let emoji = string.first, emoji.isEmoji {
                     viewModel.addEmoji(String(emoji),
                                        at: convertToEmojiCoordinate(at: location, in: geometry),
-                                       size: emojiFontSize / zoomScale)
+                                       size: emojiFontSize / zoomScale, undoManager: undoManager)
                 }
             }
         }

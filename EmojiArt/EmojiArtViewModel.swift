@@ -7,11 +7,42 @@
 
 import SwiftUI
 import Combine
+import UniformTypeIdentifiers
 
-class EmojiArtViewModel: ObservableObject {
+extension UTType {
+    static let emojiart = UTType(exportedAs: "com.entangled.mind.emojiart")
+}
+
+class EmojiArtViewModel: ObservableObject, ReferenceFileDocument {
+    
+    // Setup for Document Architecture for snapshot and SwiftUI autosave
+    typealias Snapshot = Data
+    
+    static var readableContentTypes = [UTType.emojiart]
+    static var writeableContentTypes = [UTType.emojiart]
+    
+    required init(configuration: ReadConfiguration) throws {
+        if let data = configuration.file.regularFileContents {
+            model = try EmojiArtModel(json: data)
+            fetchBackgroundImageDataIfNecessary()
+        } else {
+            throw CocoaError(.fileReadCorruptFile)
+        }
+    }
+    
+    func snapshot(contentType: UTType) throws -> Data {
+        return try model.json()
+    }
+    
+    func fileWrapper(snapshot: Data, configuration: WriteConfiguration) throws -> FileWrapper {
+        return FileWrapper(regularFileWithContents: snapshot)
+    }
+    // Setup for Document Architecture for snapshot and SwiftUI autosave
+    
     @Published private(set) var model: EmojiArtModel {
         didSet {
-            scheduleAutosave()
+//            // In using Document Architecture, SwiftUI will handle all autosave issues
+//            scheduleAutosave()
             if model.background != oldValue.background {
                 fetchBackgroundImageDataIfNecessary()
             }
@@ -25,7 +56,9 @@ class EmojiArtViewModel: ObservableObject {
     var emojis: [EmojiArtModel.Emoji] { model.emojis }
     var background: EmojiArtModel.Background { model.background }
     
-    private var autosaveTimer: Timer?
+//    // In using Document Architecture, SwiftUI will handle all autosave issues
+//    private var autosaveTimer: Timer?
+    
     // the cancellable should be hold by view model, otherwise the subscriber inside a function call will be dismissed
     private var backgroundImageFetchCancellable: AnyCancellable?
     
@@ -45,42 +78,45 @@ class EmojiArtViewModel: ObservableObject {
     }
     
     init() {
-        if let url = Autosave.url, let autosavedEmojiArt = try? EmojiArtModel(url: url) {
-            model = autosavedEmojiArt
-            fetchBackgroundImageDataIfNecessary()
-        } else {
-            model = EmojiArtModel()
-        }
+//        // In using Document Architecture, SwiftUI will handle all autosave issues
+//        if let url = Autosave.url, let autosavedEmojiArt = try? EmojiArtModel(url: url) {
+//            model = autosavedEmojiArt
+//            fetchBackgroundImageDataIfNecessary()
+//        } else {
+//            model = EmojiArtModel()
+//        }
+        model = EmojiArtModel()
      }
     
-    private func scheduleAutosave() {
-        autosaveTimer?.invalidate()
-        autosaveTimer = Timer.scheduledTimer(withTimeInterval: Autosave.coalescingInterval, repeats: false) { _ in
-            // we don't use [weak self] because we want to have a strong reference self, so that the auto-save will be kept, and will not be released by ARC.
-            self.autosave()
-        }
-    }
-    
-    private func autosave() {
-        if let url = Autosave.url {
-            save(to: url)
-        }
-    }
-    
-    private func save(to url: URL) {
-        let thisFunc = "\(String(describing: self)).\(#function)"
-        do {
-            let data: Data = try model.json()
-            print("\(thisFunc) json: \(String(data: data, encoding: .utf8) ?? "nil")")
-            try data.write(to: url)
-            print("save success!")
-        } catch let error where error is EncodingError {
-            print("\(thisFunc) EncodingError: \(error.localizedDescription)")
-        } catch {
-            print("\(thisFunc) error: \(error)")
-        }
-
-    }
+//    // In using Document Architecture, SwiftUI will handle all autosave issues
+//    private func scheduleAutosave() {
+//        autosaveTimer?.invalidate()
+//        autosaveTimer = Timer.scheduledTimer(withTimeInterval: Autosave.coalescingInterval, repeats: false) { _ in
+//            // we don't use [weak self] because we want to have a strong reference self, so that the auto-save will be kept, and will not be released by ARC.
+//            self.autosave()
+//        }
+//    }
+//
+//    private func autosave() {
+//        if let url = Autosave.url {
+//            save(to: url)
+//        }
+//    }
+//
+//    private func save(to url: URL) {
+//        let thisFunc = "\(String(describing: self)).\(#function)"
+//        do {
+//            let data: Data = try model.json()
+//            print("\(thisFunc) json: \(String(data: data, encoding: .utf8) ?? "nil")")
+//            try data.write(to: url)
+//            print("save success!")
+//        } catch let error where error is EncodingError {
+//            print("\(thisFunc) EncodingError: \(error.localizedDescription)")
+//        } catch {
+//            print("\(thisFunc) error: \(error)")
+//        }
+//
+//    }
     
     private func fetchBackgroundImageDataIfNecessary() {
         switch model.background {
@@ -144,25 +180,46 @@ class EmojiArtViewModel: ObservableObject {
     
     // MARK: - intent(s)
     
-    func setBackground(_ background: EmojiArtModel.Background) {
-        model.background = background
-    }
-    
-    func addEmoji(_ emoji: String, at location: (x: Int, y: Int), size: CGFloat) {
-        model.addEmoji(emoji, at: location, size: Int(size))
-    }
-    
-    func moveEmoji(_ emoji: EmojiArtModel.Emoji, by offset: CGSize) {
-        if let index = model.emojis.index(matching: emoji) {
-            model.emojis[index].x += Int(offset.width)
-            model.emojis[index].y += Int(offset.height)
+    func setBackground(_ background: EmojiArtModel.Background, undoManager: UndoManager?) {
+        performUndo(operationName: "Set Background", with: undoManager) {
+            model.background = background
         }
     }
     
-    func scaleEmoji(_ emoji: EmojiArtModel.Emoji, by scale: CGFloat) {
-        if let index = model.emojis.index(matching: emoji) {
-            let newSize = CGFloat(model.emojis[index].size) * scale
-            model.emojis[index].size = Int(newSize.rounded(.toNearestOrAwayFromZero))
+    func addEmoji(_ emoji: String, at location: (x: Int, y: Int), size: CGFloat, undoManager: UndoManager?) {
+        performUndo(operationName: "Add \(emoji)", with: undoManager) {
+            model.addEmoji(emoji, at: location, size: Int(size))
         }
+    }
+    
+    func moveEmoji(_ emoji: EmojiArtModel.Emoji, by offset: CGSize, undoManager: UndoManager?) {
+        if let index = model.emojis.index(matching: emoji) {
+            performUndo(operationName: "Move \(emoji.text)", with: undoManager) {
+                model.emojis[index].x += Int(offset.width)
+                model.emojis[index].y += Int(offset.height)
+            }
+        }
+    }
+    
+    func scaleEmoji(_ emoji: EmojiArtModel.Emoji, by scale: CGFloat, undoManager: UndoManager?) {
+        if let index = model.emojis.index(matching: emoji) {
+            performUndo(operationName: "Scale \(emoji.text)", with: undoManager) {
+                let newSize = CGFloat(model.emojis[index].size) * scale
+                model.emojis[index].size = Int(newSize.rounded(.toNearestOrAwayFromZero))
+            }
+        }
+    }
+    
+    // MARK: - Undo & Redo
+    private func performUndo(operationName: String, with undoManager: UndoManager?, doit: () -> Void) {
+        let oldData = model
+        doit()
+        undoManager?.registerUndo(withTarget: self) { myself in
+            // conduct performUndo inside performUndo func = Redo
+            myself.performUndo(operationName: operationName, with: undoManager) {
+                myself.model = oldData
+            }
+        }
+        undoManager?.setActionName(operationName)
     }
 }

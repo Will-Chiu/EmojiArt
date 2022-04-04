@@ -14,9 +14,10 @@ struct EmojiArtApp: App {
     @StateObject var paletteStoreVM = PaletteStoreViewModel(named: "Default")
     
     var body: some Scene {
-        // In iPad, user can drag and drop 2 same app onto the screen. And the 2 app will share above @StateObject in the same time, which means one of the app change the viewModel, another one have same result/effect.
-        WindowGroup {
-            EmojiArtView(viewModel: emojiViewModel)
+        // In iPad, user can drag and drop 2 same app onto the screen. And the 2 app will share above @StateObject in the same time, which means one of the app change the viewModel, another one have same result/effect. Therefore we use DocumentGroup to let the scenes have its own viewmodel 
+//        WindowGroup {
+        DocumentGroup(newDocument: { EmojiArtViewModel() }) { config in
+            EmojiArtView(viewModel: config.document)
             // .environmentObject is going to inject the paletteStoreVM into EmojiArtView, and all subview of EmojiArtView can get this viewModel by subscribing @EnvironmentObject property wrapper
                 .environmentObject(paletteStoreVM)
         }
