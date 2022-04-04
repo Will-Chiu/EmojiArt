@@ -9,24 +9,26 @@ import SwiftUI
 
 struct EmojiArtView: View {
     @ObservedObject var viewModel: EmojiArtViewModel
-    @State private var finalZoomScale: CGFloat = 1
+    @SceneStorage("EmojiArtView.finalZoomScale") private var finalZoomScale: CGFloat = 1
     // @GestureState to avoid frequently changing on finalZoomScale during pinch gesture, which will result exponential growth
     @GestureState private var gesturingZoomScale: CGFloat = 1
     private var zoomScale: CGFloat {
         finalZoomScale * gesturingZoomScale
     }
-    @State private var finalPanOffset: CGSize = CGSize.zero
+    @SceneStorage("EmojiArtView.finalPanOffset") private var finalPanOffset: CGSize = CGSize.zero
     // @GestureState to avoid frequently changing on finalPanOffset during pinch gesture, which will result exponential growth
     @GestureState private var gesturingPanOffset: CGSize = CGSize.zero
     private var panOffset: CGSize {
         (finalPanOffset + gesturingPanOffset) * zoomScale
     }
     @State private var alertToShow: IdentifiableAlert?
+    @State private var autoZoomEnable = false
+    @ScaledMetric var emojiFontSize: CGFloat = 40
     
     var body: some View {
         VStack(spacing: 0) {
             drawingBody
-            PaletteChooserView(fontSize: ViewConstant.EmojiFontSize)
+            PaletteChooserView(fontSize: emojiFontSize)
         }
     }
     
@@ -68,7 +70,9 @@ struct EmojiArtView: View {
                 }
             }
             .onReceive(viewModel.$backgroundImage) { image in
-                zoomToFit(image, in: geometry.size)
+                if autoZoomEnable {
+                    zoomToFit(image, in: geometry.size)
+                }
             }
         }
     }
@@ -77,6 +81,8 @@ struct EmojiArtView: View {
         var found = provider.loadObjects(ofType: URL.self) { url in
             // convert url into imageURL, because url may be a redirect link or encoded linkage
             print("imageURL: \(url.imageURL)")
+            // Only when a new background is dropped, auto zoom will be applicable
+            autoZoomEnable = true
             viewModel.setBackground(.url(url.imageURL))
         }
         
@@ -93,7 +99,7 @@ struct EmojiArtView: View {
                 if let emoji = string.first, emoji.isEmoji {
                     viewModel.addEmoji(String(emoji),
                                        at: convertToEmojiCoordinate(at: location, in: geometry),
-                                       size: ViewConstant.EmojiFontSize / zoomScale)
+                                       size: emojiFontSize / zoomScale)
                 }
             }
         }
@@ -174,9 +180,6 @@ struct EmojiArtView: View {
         }
     }
     
-    struct ViewConstant {
-        static let EmojiFontSize: CGFloat = 40
-    }
 }
 
 

@@ -12,7 +12,7 @@ struct PaletteChooserView: View {
     let fontSize: CGFloat
     let testEmojis = "🐶🐱🐭🐹🐰🦊🐻🐼🐻‍❄️🐨🐯🦁🐮🐷🐸🐵"
     @EnvironmentObject var paletteStoreVM: PaletteStoreViewModel
-    @State private var paletteIndex = 0
+    @SceneStorage("PaletteChooserView.paletteIndex") private var paletteIndex = 0
     @State private var isManaging = false
     @State private var editingPalette: Palette?
     
@@ -103,6 +103,6 @@ struct ScrollEmojisView: View {
 
 struct PaletteChooserView_Previews: PreviewProvider {
     static var previews: some View {
-        PaletteChooserView(fontSize: EmojiArtView.ViewConstant.EmojiFontSize)
+        PaletteChooserView(fontSize: 40)
     }
 }
