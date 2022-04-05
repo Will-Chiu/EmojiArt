@@ -28,6 +28,7 @@ struct PaletteChooserView: View {
             .transition(rollUpTransition)
             .popover(item: $editingPalette) { palette in
                 PaletteEditorView(palette: $paletteStoreVM.palettes[palette])
+                    .wrapperedIntoNavigationView { editingPalette = nil }
             }
             .sheet(isPresented: $isManaging) {
                 PaletteManagerView()
