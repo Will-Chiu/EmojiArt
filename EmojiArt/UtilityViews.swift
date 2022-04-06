@@ -143,13 +143,40 @@ extension View {
         if UIDevice.current.userInterfaceIdiom != .pad, let dismiss = dismiss{
             self.toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("back") {
+                    Button("close") {
                         dismiss()
                     }
+                    .font(.system(size: 20))
                 }
             }
         } else {
             self
+        }
+    }
+    
+    func compactableToolbar<Content>(@ViewBuilder content: () -> Content) -> some View where Content: View {
+        self.toolbar {
+            content().modifier(CompactedContextView())
+        }
+    }
+}
+
+
+struct CompactedContextView: ViewModifier {
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
+    var isCompact: Bool {
+        horizontalSizeClass == .compact
+    }
+    func body(content: Content) -> some View {
+        if isCompact {
+            Button { } label: {
+                Image(systemName: "ellipsis.circle")
+            }
+            .contextMenu {
+                content
+            }
+        } else {
+            content
         }
     }
 }
