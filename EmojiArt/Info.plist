@@ -63,5 +63,9 @@
 	</array>
 	<key>UISupportsDocumentBrowser</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Using camera to aake a photo for EmojiArt background</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Accessing photo library to set a photo for EmojiArt background</string>
 </dict>
 </plist>

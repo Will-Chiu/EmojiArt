@@ -25,6 +25,7 @@ struct EmojiArtView: View {
     @State private var autoZoomEnable = false
     @ScaledMetric var emojiFontSize: CGFloat = 40
     @Environment(\.undoManager) var undoManager
+    @State var backgroundPicker: BackgroundPicker?
     
     var body: some View {
         VStack(spacing: 0) {
@@ -79,6 +80,11 @@ struct EmojiArtView: View {
                 AnimatedActionButton(title: "Paste Background", systemImage: "doc.on.clipboard") {
                     pasteBackground()
                 }
+                if CameraView.isCameraAvailable {
+                    AnimatedActionButton(title: "Camera", systemImage: "camera") {
+                        backgroundPicker = .cameraPicker
+                    }
+                }
                 if let undoManager = undoManager {
                     if undoManager.canUndo {
                         AnimatedActionButton(title: undoManager.undoActionName, systemImage: "arrow.uturn.backward") {
@@ -92,12 +98,28 @@ struct EmojiArtView: View {
                     }
                 }
             }
+            .sheet(item: $backgroundPicker) { picker in
+                switch picker {
+                case .cameraPicker: CameraView(handlePickedImage: { image in
+                    setCameraImageToBackground(image)
+                })
+                case .libraryPicker: EmptyView()
+                }
+            }
 //            .toolbar {
 //                ToolbarItemGroup(placement: .bottomBar) {
 //                    // for adding button onto the bottom toolbar
 //                }
 //            }
         }
+    }
+    
+    private func setCameraImageToBackground(_ image: UIImage?) {
+        if let imageData = image?.jpegData(compressionQuality: 1.0) {
+            viewModel.setBackground(.imageData(imageData), undoManager: undoManager)
+        }
+        autoZoomEnable = true
+        backgroundPicker = nil
     }
     
     private func pasteBackground() {
@@ -114,6 +136,7 @@ struct EmojiArtView: View {
                 )
             }
         }
+        autoZoomEnable = true
     }
     
     private func emojiDrop(_ provider: [NSItemProvider], at location: CGPoint, in geometry: GeometryProxy) -> Bool {
@@ -217,6 +240,12 @@ struct EmojiArtView: View {
                 dismissButton: .default(Text("OK"))
             )
         }
+    }
+    
+    enum BackgroundPicker: Identifiable {
+        case cameraPicker
+        case libraryPicker
+        var id: BackgroundPicker { self }
     }
     
 }
