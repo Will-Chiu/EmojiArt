@@ -80,12 +80,12 @@ struct EmojiArtView: View {
                 AnimatedActionButton(title: "Paste Background", systemImage: "doc.on.clipboard") {
                     pasteBackground()
                 }
-                if CameraView.isCameraAvailable {
+                if ImagePickerView.isCameraAvailable {
                     AnimatedActionButton(title: "Camera", systemImage: "camera") {
                         backgroundPicker = .cameraPicker
                     }
                 }
-                if LibraryView.isLibraryAvailable {
+                if ImagePickerView.isLibraryAvailable {
                     AnimatedActionButton(title: "Library", systemImage: "photo.on.rectangle.angled") {
                         backgroundPicker = .libraryPicker
                     }
@@ -104,14 +104,8 @@ struct EmojiArtView: View {
                 }
             }
             .sheet(item: $backgroundPicker) { picker in
-                switch picker {
-                case .cameraPicker: CameraView(handlePickedImage: { image in
+                ImagePickerView(pickSource: (backgroundPicker == .cameraPicker) ? .camera : .library) { image in
                     setImagePickerToBackground(image)
-                })
-                case .libraryPicker:
-                    LibraryView(handlePickedImage: { image in
-                        setImagePickerToBackground(image)
-                    })
                 }
             }
 //            .toolbar {

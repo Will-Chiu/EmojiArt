@@ -11,6 +11,7 @@
 		850DD32027FBA35100E1881C /* UtilityViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 850DD31E27FBA35100E1881C /* UtilityViews.swift */; };
 		850DD32227FDC62200E1881C /* CameraView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 850DD32127FDC62200E1881C /* CameraView.swift */; };
 		850DD32427FDEF8B00E1881C /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 850DD32327FDEF8B00E1881C /* LibraryView.swift */; };
+		850DD32627FDF89100E1881C /* ImagePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 850DD32527FDF89100E1881C /* ImagePickerView.swift */; };
 		857F85D327E919E100FCD17C /* PaletteStoreViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 857F85D227E919E100FCD17C /* PaletteStoreViewModel.swift */; };
 		857F85D527EFCF1A00FCD17C /* PaletteChooserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 857F85D427EFCF1900FCD17C /* PaletteChooserView.swift */; };
 		857F85D727F0C8BE00FCD17C /* PaletteEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 857F85D627F0C8BE00FCD17C /* PaletteEditorView.swift */; };
@@ -50,6 +51,7 @@
 		850DD31E27FBA35100E1881C /* UtilityViews.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UtilityViews.swift; sourceTree = "<group>"; };
 		850DD32127FDC62200E1881C /* CameraView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraView.swift; sourceTree = "<group>"; };
 		850DD32327FDEF8B00E1881C /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
+		850DD32527FDF89100E1881C /* ImagePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePickerView.swift; sourceTree = "<group>"; };
 		857F85D227E919E100FCD17C /* PaletteStoreViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaletteStoreViewModel.swift; sourceTree = "<group>"; };
 		857F85D427EFCF1900FCD17C /* PaletteChooserView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaletteChooserView.swift; sourceTree = SOURCE_ROOT; };
 		857F85D627F0C8BE00FCD17C /* PaletteEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaletteEditorView.swift; sourceTree = "<group>"; };
@@ -122,6 +124,7 @@
 				85C7288227D68DBF0074966C /* EmojiArtView.swift */,
 				850DD32327FDEF8B00E1881C /* LibraryView.swift */,
 				850DD32127FDC62200E1881C /* CameraView.swift */,
+				850DD32527FDF89100E1881C /* ImagePickerView.swift */,
 				85C728AA27D69FF20074966C /* EmojiArtModel.swift */,
 				85C728AC27D6AF730074966C /* EmojiArtModel.Background.swift */,
 				85C728AE27D6B29E0074966C /* EmojiArtViewModel.swift */,
@@ -296,6 +299,7 @@
 				85C7288327D68DBF0074966C /* EmojiArtView.swift in Sources */,
 				85C7288127D68DBF0074966C /* EmojiArtApp.swift in Sources */,
 				850DD32227FDC62200E1881C /* CameraView.swift in Sources */,
+				850DD32627FDF89100E1881C /* ImagePickerView.swift in Sources */,
 				850DD32027FBA35100E1881C /* UtilityViews.swift in Sources */,
 				850DD32427FDEF8B00E1881C /* LibraryView.swift in Sources */,
 				857F85D727F0C8BE00FCD17C /* PaletteEditorView.swift in Sources */,
@@ -465,7 +469,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"EmojiArt/Preview Content\"";
-				DEVELOPMENT_TEAM = 594J5N6CCN;
+				DEVELOPMENT_TEAM = BYYRGG2WSZ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = EmojiArt/Info.plist;
@@ -495,7 +499,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"EmojiArt/Preview Content\"";
-				DEVELOPMENT_TEAM = 594J5N6CCN;
+				DEVELOPMENT_TEAM = BYYRGG2WSZ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = EmojiArt/Info.plist;
