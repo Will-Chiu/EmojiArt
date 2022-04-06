@@ -85,6 +85,11 @@ struct EmojiArtView: View {
                         backgroundPicker = .cameraPicker
                     }
                 }
+                if LibraryView.isLibraryAvailable {
+                    AnimatedActionButton(title: "Library", systemImage: "photo.on.rectangle.angled") {
+                        backgroundPicker = .libraryPicker
+                    }
+                }
                 if let undoManager = undoManager {
                     if undoManager.canUndo {
                         AnimatedActionButton(title: undoManager.undoActionName, systemImage: "arrow.uturn.backward") {
@@ -101,9 +106,12 @@ struct EmojiArtView: View {
             .sheet(item: $backgroundPicker) { picker in
                 switch picker {
                 case .cameraPicker: CameraView(handlePickedImage: { image in
-                    setCameraImageToBackground(image)
+                    setImagePickerToBackground(image)
                 })
-                case .libraryPicker: EmptyView()
+                case .libraryPicker:
+                    LibraryView(handlePickedImage: { image in
+                        setImagePickerToBackground(image)
+                    })
                 }
             }
 //            .toolbar {
@@ -114,7 +122,7 @@ struct EmojiArtView: View {
         }
     }
     
-    private func setCameraImageToBackground(_ image: UIImage?) {
+    private func setImagePickerToBackground(_ image: UIImage?) {
         if let imageData = image?.jpegData(compressionQuality: 1.0) {
             viewModel.setBackground(.imageData(imageData), undoManager: undoManager)
         }
