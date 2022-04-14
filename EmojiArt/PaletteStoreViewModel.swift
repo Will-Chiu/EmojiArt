@@ -75,7 +75,7 @@ class PaletteStoreViewModel: ObservableObject {
         return palettes[safeindex]
     }
     
-    @discardableResult
+    @discardableResult  // discardableResult is to ignore the compiler complaint for those unused variable
     func removePalette(at index: Int) -> Int {
         if palettes.count > 1, palettes.indices.contains(index) {
             palettes.remove(at: index)

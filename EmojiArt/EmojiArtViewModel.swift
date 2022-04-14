@@ -30,14 +30,14 @@ class EmojiArtViewModel: ObservableObject, ReferenceFileDocument {
         }
     }
     
+    // Setup for Document Architecture for snapshot and SwiftUI autosave
     func snapshot(contentType: UTType) throws -> Data {
         return try model.json()
     }
-    
     func fileWrapper(snapshot: Data, configuration: WriteConfiguration) throws -> FileWrapper {
         return FileWrapper(regularFileWithContents: snapshot)
     }
-    // Setup for Document Architecture for snapshot and SwiftUI autosave
+    
     
     @Published private(set) var model: EmojiArtModel {
         didSet {
@@ -68,14 +68,15 @@ class EmojiArtViewModel: ObservableObject, ReferenceFileDocument {
         case failed(URL)
     }
     
-    private struct Autosave {
-        static let filename = "Autosave.emojiart"
-        static var url: URL? {
-            let documentDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
-            return documentDirectory?.appendingPathComponent(filename)
-        }
-        static let coalescingInterval: TimeInterval = 3.0
-    }
+//    // In using Document Architecture, SwiftUI will handle all autosave issues
+//    private struct Autosave {
+//        static let filename = "Autosave.emojiart"
+//        static var url: URL? {
+//            let documentDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+//            return documentDirectory?.appendingPathComponent(filename)
+//        }
+//        static let coalescingInterval: TimeInterval = 3.0
+//    }
     
     init() {
 //        // In using Document Architecture, SwiftUI will handle all autosave issues

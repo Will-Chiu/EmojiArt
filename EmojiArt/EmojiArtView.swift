@@ -9,6 +9,7 @@ import SwiftUI
 
 struct EmojiArtView: View {
     @ObservedObject var viewModel: EmojiArtViewModel
+    // @SceneStorage = to auto-save and restore light-weight data
     @SceneStorage("EmojiArtView.finalZoomScale") private var finalZoomScale: CGFloat = 1
     // @GestureState to avoid frequently changing on finalZoomScale during pinch gesture, which will result exponential growth
     @GestureState private var gesturingZoomScale: CGFloat = 1
@@ -52,6 +53,7 @@ struct EmojiArtView: View {
                             // if below modifiers change position, emojis will have extra offset when drag or zoom
                             .scaleEffect(zoomScale)
                             .position(emojiPosition(for: emoji, in: geometry))
+                            .gesture(enmojiPangesture(emoji))
                     }
                 }
             }
@@ -71,6 +73,7 @@ struct EmojiArtView: View {
                     break
                 }
             }
+            // onReceive(Publisher)
             .onReceive(viewModel.$backgroundImage) { image in
                 if autoZoomEnable {
                     zoomToFit(image, in: geometry.size)
@@ -231,6 +234,13 @@ struct EmojiArtView: View {
             }
             .onEnded { finalDrag in
                 finalPanOffset = finalPanOffset + (finalDrag.translation / zoomScale)
+            }
+    }
+    
+    private func enmojiPangesture(_ emoji: EmojiArtModel.Emoji) -> some Gesture {
+        DragGesture()
+            .onEnded { finalDrag in
+                viewModel.moveEmoji(emoji, by: (finalDrag.translation / zoomScale), undoManager: undoManager)
             }
     }
     
